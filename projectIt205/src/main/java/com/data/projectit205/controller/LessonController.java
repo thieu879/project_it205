@@ -7,6 +7,7 @@ import com.data.projectit205.service.lesson.LessonService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -34,16 +35,29 @@ public class LessonController {
 
     @PostMapping
     @PreAuthorize("hasRole('TEACHER')")
-    public ResponseEntity<APIResponse<Lesson>> createLesson(@Valid @RequestBody LessonRequestDTO lessonRequestDTO, Authentication authentication) {
-        Lesson lesson = lessonService.createLesson(lessonRequestDTO, authentication.getName());
-        return new ResponseEntity<>(new APIResponse<>(true, "Tạo bài học thành công!", lesson, HttpStatus.CREATED), HttpStatus.CREATED);
+    public ResponseEntity<APIResponse<Lesson>> createLesson(
+            @ModelAttribute @Valid LessonRequestDTO lessonRequestDTO,
+            Authentication authentication) {
+        try {
+            Lesson lesson = lessonService.createLesson(lessonRequestDTO, authentication.getName());
+            return new ResponseEntity<>(new APIResponse<>(true, "Tạo bài học thành công!", lesson, HttpStatus.CREATED), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new APIResponse<>(false, e.getMessage(), null, HttpStatus.BAD_REQUEST), HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PutMapping("/{lessonId}")
     @PreAuthorize("hasRole('TEACHER')")
-    public ResponseEntity<APIResponse<Lesson>> updateLesson(@PathVariable Integer lessonId, @Valid @RequestBody LessonRequestDTO lessonRequestDTO, Authentication authentication) {
-        Lesson lesson = lessonService.updateLesson(lessonId, lessonRequestDTO, authentication.getName());
-        return new ResponseEntity<>(new APIResponse<>(true, "Cập nhật bài học thành công!", lesson, HttpStatus.OK), HttpStatus.OK);
+    public ResponseEntity<APIResponse<Lesson>> updateLesson(
+            @PathVariable Integer lessonId,
+            @ModelAttribute @Valid LessonRequestDTO lessonRequestDTO,
+            Authentication authentication) {
+        try {
+            Lesson lesson = lessonService.updateLesson(lessonId, lessonRequestDTO, authentication.getName());
+            return new ResponseEntity<>(new APIResponse<>(true, "Cập nhật bài học thành công!", lesson, HttpStatus.OK), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new APIResponse<>(false, e.getMessage(), null, HttpStatus.BAD_REQUEST), HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PutMapping("/{lessonId}/publish")

@@ -7,10 +7,12 @@ import com.data.projectit205.model.entity.User;
 import com.data.projectit205.repository.CourseRepository;
 import com.data.projectit205.repository.LessonRepository;
 import com.data.projectit205.repository.UserRepository;
+import com.data.projectit205.service.CloudinaryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,6 +25,8 @@ public class LessonServiceImpl implements LessonService {
     private CourseRepository courseRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     @Override
     public List<Lesson> getLessonsByCourse(Integer courseId) {
@@ -53,13 +57,24 @@ public class LessonServiceImpl implements LessonService {
             throw new RuntimeException("Bạn không có quyền tạo bài học cho khóa học này!");
         }
 
+        String contentUrl = null;
+        if (lessonRequestDTO.getContentUrl() != null && !lessonRequestDTO.getContentUrl().isEmpty()) {
+            try {
+                contentUrl = cloudinaryService.uploadFile(lessonRequestDTO.getContentUrl());
+            } catch (IOException e) {
+                throw new RuntimeException("Lỗi khi upload file: " + e.getMessage());
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("File không hợp lệ: " + e.getMessage());
+            }
+        }
+
         Lesson lesson = new Lesson();
         lesson.setCourse(course);
         lesson.setTitle(lessonRequestDTO.getTitle());
-        lesson.setContentUrl(lessonRequestDTO.getContentUrl());
+        lesson.setContentUrl(contentUrl);
         lesson.setTextContent(lessonRequestDTO.getTextContent());
         lesson.setOrderIndex(lessonRequestDTO.getOrderIndex());
-        lesson.setIsPublished(false);
+        lesson.setIsPublished(lessonRequestDTO.getIsPublished());
         lesson.setCreatedAt(LocalDateTime.now());
         lesson.setUpdatedAt(LocalDateTime.now());
 
@@ -78,8 +93,18 @@ public class LessonServiceImpl implements LessonService {
             throw new RuntimeException("Bạn không có quyền cập nhật bài học này!");
         }
 
+        if (lessonRequestDTO.getContentUrl() != null && !lessonRequestDTO.getContentUrl().isEmpty()) {
+            try {
+                String newContentUrl = cloudinaryService.uploadFile(lessonRequestDTO.getContentUrl());
+                lesson.setContentUrl(newContentUrl);
+            } catch (IOException e) {
+                throw new RuntimeException("Lỗi khi upload file: " + e.getMessage());
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("File không hợp lệ: " + e.getMessage());
+            }
+        }
+
         lesson.setTitle(lessonRequestDTO.getTitle());
-        lesson.setContentUrl(lessonRequestDTO.getContentUrl());
         lesson.setTextContent(lessonRequestDTO.getTextContent());
         lesson.setOrderIndex(lessonRequestDTO.getOrderIndex());
         lesson.setUpdatedAt(LocalDateTime.now());
@@ -125,7 +150,6 @@ public class LessonServiceImpl implements LessonService {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài học!"));
 
-        // Trả về đoạn trích ngắn của nội dung bài học (ví dụ: 200 ký tự đầu)
         if (lesson.getTextContent() != null) {
             return lesson.getTextContent().length() > 200 ?
                     lesson.getTextContent().substring(0, 200) + "..." :

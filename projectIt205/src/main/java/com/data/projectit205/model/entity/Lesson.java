@@ -1,5 +1,6 @@
 package com.data.projectit205.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "Lessons")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Lesson {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
