@@ -3,6 +3,7 @@ package com.data.projectit205.controller;
 import com.data.projectit205.model.dto.request.EnrollmentRequestDTO;
 import com.data.projectit205.model.dto.response.APIResponse;
 import com.data.projectit205.model.entity.Enrollment;
+import com.data.projectit205.security.principal.CustomUserDetails;
 import com.data.projectit205.service.enrollment.EnrollmentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +31,8 @@ public class EnrollmentController {
 
     @PostMapping("/enroll")
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<APIResponse<Enrollment>> enrollCourse(@RequestParam Integer courseId, Authentication authentication) {
-        Enrollment enrollment = enrollmentService.enrollCourse(courseId, authentication.getName());
+    public ResponseEntity<APIResponse<Enrollment>> enrollCourse(@RequestBody EnrollmentRequestDTO enrollmentRequestDTO, Authentication authentication) {
+        Enrollment enrollment = enrollmentService.enrollCourse(enrollmentRequestDTO.getCourseId(), authentication.getName());
         return new ResponseEntity<>(new APIResponse<>(true, "Đăng ký khóa học thành công!", enrollment, HttpStatus.CREATED), HttpStatus.CREATED);
     }
 

@@ -62,8 +62,8 @@ public class CourseController {
         return new ResponseEntity<>(new APIResponse<>(true, "Xóa khóa học thành công!", "Course deleted successfully", HttpStatus.OK), HttpStatus.OK);
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<APIResponse<List<Course>>> searchCourses(@RequestParam String keyword) {
+    @GetMapping("/search/{keyword}")
+    public ResponseEntity<APIResponse<List<Course>>> searchCourses(@PathVariable String keyword) {
         List<Course> courses = courseService.searchCourses(keyword);
         return new ResponseEntity<>(new APIResponse<>(true, "Tìm kiếm khóa học thành công!", courses, HttpStatus.OK), HttpStatus.OK);
     }

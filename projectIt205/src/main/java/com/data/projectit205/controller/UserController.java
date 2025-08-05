@@ -50,7 +50,7 @@ public class UserController {
         return new ResponseEntity<>(new APIResponse<>(true, "Đăng xuất thành công!", response, HttpStatus.OK), HttpStatus.OK);
     }
 
-    @GetMapping("/profile")
+    @GetMapping("/me")
     public ResponseEntity<APIResponse<User>> getProfile(Authentication authentication) {
         User user = userService.getUserProfile(authentication.getName());
         return new ResponseEntity<>(new APIResponse<>(true,"Lấy thông tin profile thành công!", user, HttpStatus.OK), HttpStatus.OK);
@@ -109,7 +109,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{username}")
-//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<APIResponse<String>> deleteUser(@PathVariable String username) {
         userService.deleteAccountStudent(username);
         return new ResponseEntity<>(new APIResponse<>(true,"Xóa người dùng thành công!", "User deleted successfully", HttpStatus.OK), HttpStatus.OK);
