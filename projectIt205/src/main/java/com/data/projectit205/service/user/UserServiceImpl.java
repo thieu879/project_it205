@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
                 .passwordHash(passwordEncoder.encode(userRequestDTO.getPassword()))
                 .email(userRequestDTO.getEmail())
                 .fullName(userRequestDTO.getFullName())
-                .isActive(false)
+                .isActive(true)
                 .role(role)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -81,7 +81,7 @@ public class UserServiceImpl implements UserService {
                 .passwordHash(passwordEncoder.encode(userRequestDTO.getPassword()))
                 .email(userRequestDTO.getEmail())
                 .fullName(userRequestDTO.getFullName())
-                .isActive(false)
+                .isActive(true)
                 .role(role)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -102,7 +102,6 @@ public class UserServiceImpl implements UserService {
 
             User user = userRepository.findByUsername(userDetails.getUsername())
                     .orElseThrow(() -> new RuntimeException("User not found"));
-            user.setIsActive(true);
             userRepository.save(user);
 
             return JWTResponse.builder()
@@ -213,7 +212,6 @@ public class UserServiceImpl implements UserService {
         user.setIsActive(false);
         userRepository.save(user);
         return JWTResponse.builder()
-                .isActive(false)
                 .token(null)
                 .username(null)
                 .fullName(null)

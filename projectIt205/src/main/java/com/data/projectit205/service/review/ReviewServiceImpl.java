@@ -1,9 +1,7 @@
 package com.data.projectit205.service.review;
 
 import com.data.projectit205.model.dto.request.ReviewRequestDTO;
-import com.data.projectit205.model.entity.Course;
-import com.data.projectit205.model.entity.Review;
-import com.data.projectit205.model.entity.User;
+import com.data.projectit205.model.entity.*;
 import com.data.projectit205.repository.CourseRepository;
 import com.data.projectit205.repository.EnrollmentRepository;
 import com.data.projectit205.repository.ReviewRepository;
@@ -14,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -41,11 +40,18 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sinh viên!"));
 
         // Kiểm tra sinh viên đã đăng ký khóa học chưa
-        if (enrollmentRepository.findByStudentUserIdAndCourseCourseId(student.getUserId(), course.getCourseId()).isEmpty()) {
+        Optional<Enrollment> enrollmentOpt = enrollmentRepository.findByStudentUserIdAndCourseCourseId(student.getUserId(), course.getCourseId());
+        if (enrollmentOpt.isEmpty()) {
             throw new RuntimeException("Bạn phải đăng ký khóa học trước khi đánh giá!");
         }
 
-        // Kiểm tra đã đánh giá chưa - SỬA TẠI ĐÂY
+        // Chỉ cho đánh giá nếu đã hoàn thành khóa học (tùy chọn, có thể bỏ)
+        Enrollment enrollment = enrollmentOpt.get();
+        if (!enrollment.getStatus().equals(EEnrollmentStatus.COMPLETED)) {
+            throw new RuntimeException("Bạn phải hoàn thành khóa học trước khi đánh giá!");
+        }
+
+        // Kiểm tra đã đánh giá chưa
         if (reviewRepository.findByCourseCourseIdAndStudentUserId(course.getCourseId(), student.getUserId()).isPresent()) {
             throw new RuntimeException("Bạn đã đánh giá khóa học này rồi!");
         }
@@ -60,6 +66,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         return reviewRepository.save(review);
     }
+
 
     @Override
     public Review updateReview(Integer reviewId, ReviewRequestDTO reviewRequestDTO, String username) {

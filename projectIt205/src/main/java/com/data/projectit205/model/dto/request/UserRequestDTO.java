@@ -22,6 +22,6 @@ public class UserRequestDTO {
     @NotBlank
     private String fullName;
 
-    private Boolean isActive = false;
+    private Boolean isActive = true;
 }
 

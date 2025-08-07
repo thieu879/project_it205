@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +26,18 @@ public class CourseController {
     public ResponseEntity<APIResponse<List<Course>>> getAllCourses(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Integer teacherId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = false;
+        if (authentication != null && authentication.isAuthenticated()) {
+            isAdmin = authentication.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .anyMatch(auth -> auth.equals("ROLE_ADMIN"));
+        }
+
+        if (!isAdmin && status != null && !status.equalsIgnoreCase("PUBLISHED")) {
+            status = "PUBLISHED";
+        }
+
         List<Course> courses = courseService.getAllCourses(status, teacherId);
         return new ResponseEntity<>(new APIResponse<>(true, "Lấy danh sách khóa học thành công!", courses, HttpStatus.OK), HttpStatus.OK);
     }
@@ -72,5 +86,12 @@ public class CourseController {
     public ResponseEntity<APIResponse<List<Course>>> getPopularCourses(@RequestParam(defaultValue = "10") Integer limit) {
         List<Course> courses = courseService.getPopularCourses(limit);
         return new ResponseEntity<>(new APIResponse<>(true, "Lấy danh sách khóa học phổ biến thành công!", courses, HttpStatus.OK), HttpStatus.OK);
+    }
+
+    @GetMapping("/my-courses")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<APIResponse<List<Course>>> getMyCourses(Authentication authentication) {
+        List<Course> courses = courseService.getCoursesByTeacher(authentication.getName());
+        return new ResponseEntity<>(new APIResponse<>(true, "Lấy danh sách khóa học của giảng viên thành công!", courses, HttpStatus.OK), HttpStatus.OK);
     }
 }

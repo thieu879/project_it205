@@ -88,13 +88,17 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             throw new RuntimeException("Bài học không thuộc khóa học đã đăng ký!");
         }
 
-        // Tạo hoặc cập nhật tiến độ bài học - SỬA TẠI ĐÂY
+        // Tạo hoặc cập nhật tiến độ bài học
         LessonProgress progress = lessonProgressRepository
                 .findByEnrollmentEnrollmentIdAndLessonLessonId(enrollmentId, lessonId)
-                .orElse(new LessonProgress());
+                .orElseGet(() -> {
+                    LessonProgress newProgress = new LessonProgress();
+                    newProgress.setEnrollment(enrollment);
+                    newProgress.setLesson(lesson);
+                    newProgress.setLastAccessedAt(LocalDateTime.now());
+                    return newProgress;
+                });
 
-        progress.setEnrollment(enrollment);
-        progress.setLesson(lesson);
         progress.setIsCompleted(true);
         progress.setCompletedAt(LocalDateTime.now());
         progress.setLastAccessedAt(LocalDateTime.now());
@@ -106,6 +110,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
         return enrollmentRepository.save(enrollment);
     }
+
 
     private void updateEnrollmentProgress(Enrollment enrollment) {
         List<Lesson> allLessons = lessonRepository.findPublishedLessonsByCourse(enrollment.getCourse().getCourseId());
